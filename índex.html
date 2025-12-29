@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite SSH - Premium Panel</title>
+    <style>
+        :root {
+            --bg: #050505;
+            --card: #111111;
+            --gold: #d4af37;
+            --silver: #c0c0c0;
+            --red: #8b0000;
+            --white: #ffffff;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--white);
+            font-family: 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 400px;
+            padding: 20px;
+        }
+
+        /* Telas */
+        .screen { display: none; }
+        .active { display: block; }
+
+        /* Estilo dos Cards */
+        .card {
+            background: var(--card);
+            border: 1px solid #222;
+            border-top: 3px solid var(--gold);
+            border-radius: 15px;
+            padding: 25px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        /* Inputs */
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: var(--gold);
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        /* Botões */
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            margin-top: 10px;
+            transition: 0.3s;
+        }
+
+        .btn-gold { background: linear-gradient(45deg, #d4af37, #f9e29c); color: #000; }
+        .btn-red { background: var(--red); color: white; }
+        .btn-outline { background: transparent; border: 1px solid var(--gold); color: var(--gold); font-size: 12px; }
+
+        .user-item {
+            background: #1a1a1a;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <div id="screen-login" class="screen active">
+        <div class="card">
+            <h2 style="color: var(--gold)">ELITE SSH</h2>
+            <p style="color: var(--silver)">Acesse sua conta premium</p>
+            <input type="text" id="login-user" placeholder="Usuário">
+            <input type="password" id="login-pass" placeholder="Senha">
+            <button class="btn btn-gold" onclick="tentarLogin()">ENTRAR NO PAINEL</button>
+            <button class="btn btn-outline" style="margin-top: 20px;" onclick="irPara('screen-admin-auth')">⚙ ACESSO ADMIN</button>
+        </div>
+    </div>
+
+    <div id="screen-client" class="screen">
+        <div class="card">
+            <h3 id="welcome-text" style="color: var(--gold)">Olá!</h3>
+            <div style="background: #222; padding: 10px; border-radius: 10px; margin: 15px 0;">
+                <small style="color: var(--silver)">STATUS DA CONTA</small>
+                <div style="color: #00ff00; font-weight: bold;">ATIVO</div>
+            </div>
+            <button class="btn btn-gold">RENOVAR AGORA</button>
+            <button class="btn btn-red">FALAR COM SUPORTE</button>
+            <button class="btn btn-outline" onclick="irPara('screen-login')">SAIR</button>
+        </div>
+    </div>
+
+    <div id="screen-admin-auth" class="screen">
+        <div class="card">
+            <h2 style="color: var(--red)">ADMINISTRATIVO</h2>
+            <input type="password" id="admin-pass-check" placeholder="Senha Mestra">
+            <button class="btn btn-red" onclick="checarAdmin()">ACESSAR GESTÃO</button>
+            <button class="btn btn-outline" onclick="irPara('screen-login')">VOLTAR</button>
+        </div>
+    </div>
+
+    <div id="screen-admin-panel" class="screen">
+        <div class="card" style="text-align: left;">
+            <h3 style="color: var(--gold); text-align: center;">CRIAR NOVO ACESSO</h3>
+            <label>Usuário:</label>
+            <input type="text" id="new-username">
+            <label>Senha:</label>
+            <input type="text" id="new-password">
+            <button class="btn btn-gold" onclick="criarUsuario()">SALVAR USUÁRIO</button>
+            
+            <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
+            <h4 style="color: var(--silver)">USUÁRIOS CADASTRADOS:</h4>
+            <div id="lista-usuarios"></div>
+            <button class="btn btn-outline" onclick="irPara('screen-login')">VOLTAR AO LOGIN</button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    // Função para trocar de tela
+    function irPara(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+
+    // Banco de dados fake no navegador
+    let usuarios = JSON.parse(localStorage.getItem('ssh_users')) || [];
+
+    function criarUsuario() {
+        const u = document.getElementById('new-username').value;
+        const p = document.getElementById('new-password').value;
+
+        if(u && p) {
+            usuarios.push({user: u, pass: p});
+            localStorage.setItem('ssh_users', JSON.stringify(usuarios));
+            alert("Usuário " + u + " criado!");
+            document.getElementById('new-username').value = "";
+            document.getElementById('new-password').value = "";
+            atualizarLista();
+        }
+    }
+
+    function atualizarLista() {
+        const lista = document.getElementById('lista-usuarios');
+        lista.innerHTML = usuarios.map(u => `
+            <div class="user-item">
+                <span>👤 ${u.user}</span>
+                <span style="color: var(--gold)">● Online</span>
+            </div>
+        `).join('');
+    }
+
+    function tentarLogin() {
+        const u = document.getElementById('login-user').value;
+        const p = document.getElementById('login-pass').value;
+        
+        const encontrado = usuarios.find(item => item.user === u && item.pass === p);
+
+        if(encontrado) {
+            document.getElementById('welcome-text').innerText = "Olá, " + u + "!";
+            irPara('screen-client');
+        } else {
+            alert("Usuário ou senha incorretos!");
+        }
+    }
+
+    function checarAdmin() {
+        const pass = document.getElementById('admin-pass-check').value;
+        if(pass === "1234") { // SENHA DO ADMIN AQUI
+            atualizarLista();
+            irPara('screen-admin-panel');
+        } else {
+            alert("Senha Admin Incorreta!");
+        }
+    }
+</script>
+
+</body>
+</html>
