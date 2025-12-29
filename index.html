@@ -12,6 +12,7 @@
             --silver: #c0c0c0;
             --red: #8b0000;
             --white: #ffffff;
+            --green-active: #00ff00; /* Novo para o acesso permitido */
         }
 
         body {
@@ -83,6 +84,39 @@
             justify-content: space-between;
             font-size: 14px;
         }
+
+        /* Carregamento */
+        .loader {
+            border: 5px solid #f3f3f3; /* Light grey */
+            border-top: 5px solid var(--gold); /* Blue */
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+            display: none; /* Escondido por padrão */
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Efeito Rainbow para o texto "Acesso Permitido" */
+        .rainbow-text {
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: rainbow 5s infinite;
+            display: none; /* Escondido por padrão */
+        }
+
+        @keyframes rainbow {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 100% 50%; }
+        }
     </style>
 </head>
 <body>
@@ -105,14 +139,24 @@
             <h3 id="welcome-text" style="color: var(--gold)">Olá!</h3>
             <div style="background: #222; padding: 10px; border-radius: 10px; margin: 15px 0;">
                 <small style="color: var(--silver)">STATUS DA CONTA</small>
-                <div style="color: #00ff00; font-weight: bold;">ATIVO</div>
+                <div style="color: var(--green-active); font-weight: bold;">ATIVO</div>
             </div>
             <button class="btn btn-gold">RENOVAR AGORA</button>
             <button class="btn btn-red">FALAR COM SUPORTE</button>
-            <button class="btn btn-outline" onclick="irPara('screen-login')">SAIR</button>
+            <button class="btn btn-outline" onclick="irPara('screen-connection')">📡 CONEXÃO</button> <button class="btn btn-outline" onclick="irPara('screen-login')" style="margin-top: 20px;">SAIR</button>
         </div>
     </div>
 
+    <div id="screen-connection" class="screen">
+        <div class="card">
+            <h3 style="color: var(--gold)">OPÇÕES DE CONEXÃO</h3>
+            <button class="btn btn-gold" onclick="iniciarConexao('iOS')">🍎 INTERNET iOS</button>
+            <button class="btn btn-red" onclick="iniciarConexao('Android')">🤖 INTERNET ANDROID</button>
+            <div id="connection-loader" class="loader"></div>
+            <div id="connection-status" class="rainbow-text">ACESSO PERMITIDO</div>
+            <button class="btn btn-outline" onclick="irPara('screen-client')" style="margin-top: 20px;">VOLTAR</button>
+        </div>
+    </div>
     <div id="screen-admin-auth" class="screen">
         <div class="card">
             <h2 style="color: var(--red)">ADMINISTRATIVO</h2>
@@ -135,20 +179,52 @@
             <h4 style="color: var(--silver)">USUÁRIOS CADASTRADOS:</h4>
             <div id="lista-usuarios"></div>
             <button class="btn btn-outline" onclick="irPara('screen-login')">VOLTAR AO LOGIN</button>
+            <button class="btn btn-outline" onclick="alterarSenhaMestra()" style="border-color: var(--red); color: var(--red); margin-top: 10px;">
+                🔒 ALTERAR SENHA MESTRA
+            </button>
         </div>
     </div>
 
 </div>
 
 <script>
-    // Função para trocar de tela
+    // --- Configurações Iniciais ---
+    let senhaMestra = localStorage.getItem('admin_pass') || "1234"; 
+    let usuarios = JSON.parse(localStorage.getItem('ssh_users')) || [];
+
+    // --- Funções de Navegação ---
     function irPara(id) {
         document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
         document.getElementById(id).classList.add('active');
+        // Ao voltar para a conexão, esconde o status anterior
+        if (id === 'screen-connection') {
+            document.getElementById('connection-loader').style.display = 'none';
+            document.getElementById('connection-status').style.display = 'none';
+        }
     }
 
-    // Banco de dados fake no navegador
-    let usuarios = JSON.parse(localStorage.getItem('ssh_users')) || [];
+    // --- Autenticação e Gestão de Admin ---
+    function checarAdmin() {
+        const passDigitada = document.getElementById('admin-pass-check').value;
+        if(passDigitada === senhaMestra) {
+            atualizarLista();
+            irPara('screen-admin-panel');
+            document.getElementById('admin-pass-check').value = "";
+        } else {
+            alert("❌ Senha Admin Incorreta!");
+        }
+    }
+
+    function alterarSenhaMestra() {
+        const novaSenha = prompt("Digite a NOVA senha de Administrador:");
+        if(novaSenha && novaSenha.length >= 4) {
+            senhaMestra = novaSenha;
+            localStorage.setItem('admin_pass', novaSenha);
+            alert("✅ Senha de Administrador alterada com sucesso!");
+        } else {
+            alert("A senha precisa ter pelo menos 4 caracteres.");
+        }
+    }
 
     function criarUsuario() {
         const u = document.getElementById('new-username').value;
@@ -157,45 +233,69 @@
         if(u && p) {
             usuarios.push({user: u, pass: p});
             localStorage.setItem('ssh_users', JSON.stringify(usuarios));
-            alert("Usuário " + u + " criado!");
+            alert("👤 Usuário " + u + " criado!");
             document.getElementById('new-username').value = "";
             document.getElementById('new-password').value = "";
             atualizarLista();
+        } else {
+            alert("Preencha usuário e senha!");
         }
     }
 
     function atualizarLista() {
         const lista = document.getElementById('lista-usuarios');
-        lista.innerHTML = usuarios.map(u => `
+        if (usuarios.length === 0) {
+            lista.innerHTML = "<p style='color:gray'>Nenhum usuário cadastrado.</p>";
+            return;
+        }
+        lista.innerHTML = usuarios.map((u, index) => `
             <div class="user-item">
                 <span>👤 ${u.user}</span>
-                <span style="color: var(--gold)">● Online</span>
+                <button onclick="removerUsuario(${index})" style="background:none; border:none; color:red; cursor:pointer; font-size:16px;">🗑️</button>
             </div>
         `).join('');
+    }
+
+    function removerUsuario(index) {
+        if(confirm("Deseja excluir este usuário?")) {
+            usuarios.splice(index, 1);
+            localStorage.setItem('ssh_users', JSON.stringify(usuarios));
+            atualizarLista();
+        }
     }
 
     function tentarLogin() {
         const u = document.getElementById('login-user').value;
         const p = document.getElementById('login-pass').value;
-        
         const encontrado = usuarios.find(item => item.user === u && item.pass === p);
 
         if(encontrado) {
             document.getElementById('welcome-text').innerText = "Olá, " + u + "!";
             irPara('screen-client');
+            // Limpa os campos de login
+            document.getElementById('login-user').value = "";
+            document.getElementById('login-pass').value = "";
         } else {
             alert("Usuário ou senha incorretos!");
         }
     }
 
-    function checarAdmin() {
-        const pass = document.getElementById('admin-pass-check').value;
-        if(pass === "1234") { // SENHA DO ADMIN AQUI
-            atualizarLista();
-            irPara('screen-admin-panel');
-        } else {
-            alert("Senha Admin Incorreta!");
-        }
+    // --- NOVA FUNÇÃO DE CONEXÃO ---
+    function iniciarConexao(tipo) {
+        const loader = document.getElementById('connection-loader');
+        const statusText = document.getElementById('connection-status');
+
+        // Mostra o loader, esconde o texto de status
+        loader.style.display = 'block';
+        statusText.style.display = 'none';
+
+        // Simula um carregamento de 2 segundos
+        setTimeout(() => {
+            loader.style.display = 'none'; // Esconde o loader
+            statusText.style.display = 'block'; // Mostra o texto "Acesso Permitido"
+            // Poderíamos adicionar lógica aqui para redirecionar ou mostrar instruções específicas
+            console.log(`Conexão ${tipo} ativada!`);
+        }, 2000); // 2000ms = 2 segundos
     }
 </script>
 
