@@ -1,303 +1,89 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Elite SSH - Premium Panel</title>
+    <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Elite SSH - Premium</title>
     <style>
-        :root {
-            --bg: #050505;
-            --card: #111111;
-            --gold: #d4af37;
-            --silver: #c0c0c0;
-            --red: #8b0000;
-            --white: #ffffff;
-            --green-active: #00ff00; /* Novo para o acesso permitido */
-        }
-
-        body {
-            background-color: var(--bg);
-            color: var(--white);
-            font-family: 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-        }
-
-        .container {
-            width: 100%;
-            max-width: 400px;
-            padding: 20px;
-        }
-
-        /* Telas */
-        .screen { display: none; }
-        .active { display: block; }
-
-        /* Estilo dos Cards */
-        .card {
-            background: var(--card);
-            border: 1px solid #222;
-            border-top: 3px solid var(--gold);
-            border-radius: 15px;
-            padding: 25px;
-            text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
-
-        /* Inputs */
-        input, select {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0;
-            background: #1a1a1a;
-            border: 1px solid #333;
-            color: var(--gold);
-            border-radius: 8px;
-            box-sizing: border-box;
-        }
-
-        /* Botões */
-        .btn {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            margin-top: 10px;
-            transition: 0.3s;
-        }
-
+        :root { --bg: #050505; --card: #111111; --gold: #d4af37; --silver: #c0c0c0; --red: #8b0000; --white: #ffffff; --green-vpn: #00ff41; }
+        body { background: var(--bg); color: var(--white); font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; justify-content: center; min-height: 100vh; }
+        .container { width: 100%; max-width: 400px; padding: 20px; }
+        .screen { display: none; } .active { display: block; }
+        .card { background: var(--card); border: 1px solid #222; border-top: 3px solid var(--gold); border-radius: 15px; padding: 25px; text-align: center; box-shadow: 0 10px 30px #000; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; background: #1a1a1a; border: 1px solid #333; color: var(--gold); border-radius: 8px; box-sizing: border-box; }
+        .btn { width: 100%; padding: 15px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; text-transform: uppercase; margin-top: 10px; transition: 0.3s; }
         .btn-gold { background: linear-gradient(45deg, #d4af37, #f9e29c); color: #000; }
         .btn-red { background: var(--red); color: white; }
         .btn-outline { background: transparent; border: 1px solid var(--gold); color: var(--gold); font-size: 12px; }
-
-        .user-item {
-            background: #1a1a1a;
-            padding: 10px;
-            margin-top: 5px;
-            border-radius: 5px;
-            display: flex;
-            justify-content: space-between;
-            font-size: 14px;
-        }
-
-        /* Carregamento */
-        .loader {
-            border: 5px solid #f3f3f3; /* Light grey */
-            border-top: 5px solid var(--gold); /* Blue */
-            border-radius: 50%;
-            width: 50px;
-            height: 50px;
-            animation: spin 1s linear infinite;
-            margin: 20px auto;
-            display: none; /* Escondido por padrão */
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Efeito Rainbow para o texto "Acesso Permitido" */
-        .rainbow-text {
-            font-size: 24px;
-            font-weight: bold;
-            background: linear-gradient(to right, red, orange, yellow, green, blue, indigo, violet);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            animation: rainbow 5s infinite;
-            display: none; /* Escondido por padrão */
-        }
-
-        @keyframes rainbow {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 100% 50%; }
-        }
+        .gold-text-anim { font-size: 24px; font-weight: bold; background: linear-gradient(to right, #bf953f, #fcf6ba, #b38728, #fcf6ba, #aa771c); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 200% auto; animation: shine 3s linear infinite; display: none; }
+        @keyframes shine { to { background-position: 200% center; } }
+        .loader { border: 4px solid #222; border-top: 4px solid var(--gold); border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; display: none; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .vpn-icon { font-size: 50px; color: var(--green-vpn); display: none; margin-top: 15px; }
     </style>
 </head>
 <body>
-
 <div class="container">
-
     <div id="screen-login" class="screen active">
         <div class="card">
-            <h2 style="color: var(--gold)">ELITE SSH</h2>
-            <p style="color: var(--silver)">Acesse sua conta premium</p>
-            <input type="text" id="login-user" placeholder="Usuário">
-            <input type="password" id="login-pass" placeholder="Senha">
-            <button class="btn btn-gold" onclick="tentarLogin()">ENTRAR NO PAINEL</button>
-            <button class="btn btn-outline" style="margin-top: 20px;" onclick="irPara('screen-admin-auth')">⚙ ACESSO ADMIN</button>
+            <h2 style="color:var(--gold)">ELITE SSH</h2>
+            <input type="text" id="login-user" placeholder="Usuário"><input type="password" id="login-pass" placeholder="Senha">
+            <button class="btn btn-gold" onclick="tentarLogin()">ENTRAR</button>
+            <button class="btn btn-outline" style="margin-top:20px" onclick="irPara('screen-admin-auth')">ADMIN</button>
         </div>
     </div>
-
     <div id="screen-client" class="screen">
         <div class="card">
-            <h3 id="welcome-text" style="color: var(--gold)">Olá!</h3>
-            <div style="background: #222; padding: 10px; border-radius: 10px; margin: 15px 0;">
-                <small style="color: var(--silver)">STATUS DA CONTA</small>
-                <div style="color: var(--green-active); font-weight: bold;">ATIVO</div>
-            </div>
-            <button class="btn btn-gold">RENOVAR AGORA</button>
-            <button class="btn btn-red">FALAR COM SUPORTE</button>
-            <button class="btn btn-outline" onclick="irPara('screen-connection')">📡 CONEXÃO</button> <button class="btn btn-outline" onclick="irPara('screen-login')" style="margin-top: 20px;">SAIR</button>
+            <h3 id="welcome-text" style="color:var(--gold)">Olá!</h3>
+            <button class="btn btn-outline" onclick="irPara('screen-connection')">📡 CONEXÃO FREE</button> 
+            <button class="btn btn-gold" id="btn-vip-access" onclick="checarAcessoVip()" style="display:none">💎 ACESSO VIP</button>
+            <button class="btn btn-red" style="margin-top:20px">SUPORTE</button>
+            <button class="btn btn-outline" onclick="irPara('screen-login')">SAIR</button>
         </div>
     </div>
-
     <div id="screen-connection" class="screen">
         <div class="card">
-            <h3 style="color: var(--gold)">OPÇÕES DE CONEXÃO</h3>
-            <button class="btn btn-gold" onclick="iniciarConexao('iOS')">🍎 INTERNET iOS</button>
-            <button class="btn btn-red" onclick="iniciarConexao('Android')">🤖 INTERNET ANDROID</button>
+            <h3 style="color:var(--gold)">CONEXÃO</h3>
+            <button class="btn btn-gold" onclick="iniciarConexao()">INTERNET iOS/ANDROID</button>
             <div id="connection-loader" class="loader"></div>
-            <div id="connection-status" class="rainbow-text">ACESSO PERMITIDO</div>
-            <button class="btn btn-outline" onclick="irPara('screen-client')" style="margin-top: 20px;">VOLTAR</button>
+            <div id="connection-status" class="gold-text-anim">ACESSO PERMITIDO</div>
+            <button class="btn btn-outline" onclick="irPara('screen-client')" style="margin-top:20px">VOLTAR</button>
+        </div>
+    </div>
+    <div id="screen-vip" class="screen">
+        <div class="card">
+            <h3 style="color:#f1c40f">PAINEL VIP 💎</h3>
+            <button class="btn btn-gold" onclick="gerarVPN()">GERAR VPN VIP</button>
+            <div id="vpn-loader" class="loader"></div>
+            <div class="vpn-icon" id="vpn-shield">🛡️</div>
+            <div id="vpn-status-text" style="color:var(--green-vpn);font-weight:bold;display:none;margin-top:10px">VPN ATIVA</div>
+            <button class="btn btn-outline" onclick="irPara('screen-client')" style="margin-top:20px">VOLTAR</button>
         </div>
     </div>
     <div id="screen-admin-auth" class="screen">
-        <div class="card">
-            <h2 style="color: var(--red)">ADMINISTRATIVO</h2>
-            <input type="password" id="admin-pass-check" placeholder="Senha Mestra">
-            <button class="btn btn-red" onclick="checarAdmin()">ACESSAR GESTÃO</button>
-            <button class="btn btn-outline" onclick="irPara('screen-login')">VOLTAR</button>
-        </div>
+        <div class="card"><h2 style="color:var(--red)">GESTÃO</h2><input type="password" id="admin-pass-check" placeholder="Senha Mestra"><button class="btn btn-red" onclick="checarAdmin()">ENTRAR</button></div>
     </div>
-
     <div id="screen-admin-panel" class="screen">
-        <div class="card" style="text-align: left;">
-            <h3 style="color: var(--gold); text-align: center;">CRIAR NOVO ACESSO</h3>
-            <label>Usuário:</label>
-            <input type="text" id="new-username">
-            <label>Senha:</label>
-            <input type="text" id="new-password">
-            <button class="btn btn-gold" onclick="criarUsuario()">SALVAR USUÁRIO</button>
-            
-            <hr style="border: 0; border-top: 1px solid #333; margin: 20px 0;">
-            <h4 style="color: var(--silver)">USUÁRIOS CADASTRADOS:</h4>
-            <div id="lista-usuarios"></div>
-            <button class="btn btn-outline" onclick="irPara('screen-login')">VOLTAR AO LOGIN</button>
-            <button class="btn btn-outline" onclick="alterarSenhaMestra()" style="border-color: var(--red); color: var(--red); margin-top: 10px;">
-                🔒 ALTERAR SENHA MESTRA
-            </button>
+        <div class="card" style="text-align:left">
+            <h3 style="color:var(--gold);text-align:center">GERENCIAR</h3>
+            <input type="text" id="new-username" placeholder="Usuário"><input type="text" id="new-password" placeholder="Senha">
+            <select id="new-is-vip"><option value="false">Comum (Free)</option><option value="true">💎 VIP (Premium)</option></select>
+            <button class="btn btn-gold" onclick="criarUsuario()">CRIAR CONTA</button>
+            <div id="lista-usuarios" style="margin-top:20px"></div>
+            <button class="btn btn-outline" onclick="irPara('screen-login')">SAIR</button>
         </div>
     </div>
-
 </div>
-
 <script>
-    // --- Configurações Iniciais ---
-    let senhaMestra = localStorage.getItem('admin_pass') || "1234"; 
-    let usuarios = JSON.parse(localStorage.getItem('ssh_users')) || [];
-
-    // --- Funções de Navegação ---
-    function irPara(id) {
-        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-        document.getElementById(id).classList.add('active');
-        // Ao voltar para a conexão, esconde o status anterior
-        if (id === 'screen-connection') {
-            document.getElementById('connection-loader').style.display = 'none';
-            document.getElementById('connection-status').style.display = 'none';
-        }
-    }
-
-    // --- Autenticação e Gestão de Admin ---
-    function checarAdmin() {
-        const passDigitada = document.getElementById('admin-pass-check').value;
-        if(passDigitada === senhaMestra) {
-            atualizarLista();
-            irPara('screen-admin-panel');
-            document.getElementById('admin-pass-check').value = "";
-        } else {
-            alert("❌ Senha Admin Incorreta!");
-        }
-    }
-
-    function alterarSenhaMestra() {
-        const novaSenha = prompt("Digite a NOVA senha de Administrador:");
-        if(novaSenha && novaSenha.length >= 4) {
-            senhaMestra = novaSenha;
-            localStorage.setItem('admin_pass', novaSenha);
-            alert("✅ Senha de Administrador alterada com sucesso!");
-        } else {
-            alert("A senha precisa ter pelo menos 4 caracteres.");
-        }
-    }
-
-    function criarUsuario() {
-        const u = document.getElementById('new-username').value;
-        const p = document.getElementById('new-password').value;
-
-        if(u && p) {
-            usuarios.push({user: u, pass: p});
-            localStorage.setItem('ssh_users', JSON.stringify(usuarios));
-            alert("👤 Usuário " + u + " criado!");
-            document.getElementById('new-username').value = "";
-            document.getElementById('new-password').value = "";
-            atualizarLista();
-        } else {
-            alert("Preencha usuário e senha!");
-        }
-    }
-
-    function atualizarLista() {
-        const lista = document.getElementById('lista-usuarios');
-        if (usuarios.length === 0) {
-            lista.innerHTML = "<p style='color:gray'>Nenhum usuário cadastrado.</p>";
-            return;
-        }
-        lista.innerHTML = usuarios.map((u, index) => `
-            <div class="user-item">
-                <span>👤 ${u.user}</span>
-                <button onclick="removerUsuario(${index})" style="background:none; border:none; color:red; cursor:pointer; font-size:16px;">🗑️</button>
-            </div>
-        `).join('');
-    }
-
-    function removerUsuario(index) {
-        if(confirm("Deseja excluir este usuário?")) {
-            usuarios.splice(index, 1);
-            localStorage.setItem('ssh_users', JSON.stringify(usuarios));
-            atualizarLista();
-        }
-    }
-
-    function tentarLogin() {
-        const u = document.getElementById('login-user').value;
-        const p = document.getElementById('login-pass').value;
-        const encontrado = usuarios.find(item => item.user === u && item.pass === p);
-
-        if(encontrado) {
-            document.getElementById('welcome-text').innerText = "Olá, " + u + "!";
-            irPara('screen-client');
-            // Limpa os campos de login
-            document.getElementById('login-user').value = "";
-            document.getElementById('login-pass').value = "";
-        } else {
-            alert("Usuário ou senha incorretos!");
-        }
-    }
-
-    // --- NOVA FUNÇÃO DE CONEXÃO ---
-    function iniciarConexao(tipo) {
-        const loader = document.getElementById('connection-loader');
-        const statusText = document.getElementById('connection-status');
-
-        // Mostra o loader, esconde o texto de status
-        loader.style.display = 'block';
-        statusText.style.display = 'none';
-
-        // Simula um carregamento de 2 segundos
-        setTimeout(() => {
-            loader.style.display = 'none'; // Esconde o loader
-            statusText.style.display = 'block'; // Mostra o texto "Acesso Permitido"
-            // Poderíamos adicionar lógica aqui para redirecionar ou mostrar instruções específicas
-            console.log(`Conexão ${tipo} ativada!`);
-        }, 2000); // 2000ms = 2 segundos
-    }
+    let sMestra=localStorage.getItem('admin_pass')||"1234", usrs=JSON.parse(localStorage.getItem('ssh_users'))||[], usrLgd=null;
+    const irPara=(id)=>{document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');};
+    const criarUsuario=()=>{const u=document.getElementById('new-username').value, p=document.getElementById('new-password').value, v=document.getElementById('new-is-vip').value==='true'; if(u&&p){usrs.push({user:u,pass:p,vip:v});localStorage.setItem('ssh_users',JSON.stringify(usrs));alert("Criado!");atualizarLista();}};
+    const atualizarLista=()=>{document.getElementById('lista-usuarios').innerHTML=usrs.map((u,i)=>`<div style="background:#1a1a1a;padding:8px;margin-bottom:5px;display:flex;justify-content:space-between;font-size:12px;"><span>${u.vip?'💎':'👤'} ${u.user}</span><button onclick="removerUsuario(${i})" style="color:red;background:none;border:none">X</button></div>`).join('');};
+    const removerUsuario=(i)=>{if(confirm("Excluir?")){usrs.splice(i,1);localStorage.setItem('ssh_users',JSON.stringify(usrs));atualizarLista();}};
+    const tentarLogin=()=>{const u=document.getElementById('login-user').value, p=document.getElementById('login-pass').value; usrLgd=usrs.find(x=>x.user===u&&x.pass===p); if(usrLgd){document.getElementById('welcome-text').innerText="Olá, "+u+"!";document.getElementById('btn-vip-access').style.display=usrLgd.vip?'block':'none';irPara('screen-client');}else{alert("Erro!");}};
+    const checarAcessoVip=()=>{if(usrLgd&&usrLgd.vip)irPara('screen-vip');else alert("Apenas VIP!");};
+    const iniciarConexao=()=>{document.getElementById('connection-loader').style.display='block';document.getElementById('connection-status').style.display='none';setTimeout(()=>{document.getElementById('connection-loader').style.display='none';document.getElementById('connection-status').style.display='block';},2000);};
+    const gerarVPN=()=>{document.getElementById('vpn-loader').style.display='block';document.getElementById('vpn-shield').style.display='none';document.getElementById('vpn-status-text').style.display='none';setTimeout(()=>{document.getElementById('vpn-loader').style.display='none';document.getElementById('vpn-shield').style.display='block';document.getElementById('vpn-status-text').style.display='block';},2500);};
+    const checarAdmin=()=>{if(document.getElementById('admin-pass-check').value===sMestra){atualizarLista();irPara('screen-admin-panel');}else alert("Erro!");};
 </script>
-
 </body>
 </html>
